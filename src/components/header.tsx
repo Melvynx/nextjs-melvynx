@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth";
 import { getUser } from "@/lib/auth-server";
-import { LogOut, User2 } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { LogOut, Star, User2 } from "lucide-react";
 import { headers } from "next/headers";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -44,12 +45,20 @@ export const AuthButton = async () => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm">
+        <Button
+          variant="outline"
+          size="sm"
+          className={cn({
+            "bg-linear-to-r/increasing from-indigo-500 to-teal-400 border-0":
+              user.plan === "PRO",
+          })}
+        >
           <Avatar className="size-6">
             {user.image ? <AvatarImage src={user.image} /> : null}
             <AvatarFallback>{user.email[0].toUpperCase()}</AvatarFallback>
           </Avatar>
           <p>{user.name}</p>
+          {user.plan === "PRO" ? <Star className="size-3"></Star> : null}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>

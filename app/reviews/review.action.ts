@@ -1,15 +1,38 @@
 "use server";
 
+import { LIMITATIONS } from "@/lib/auth-plan";
 import { prisma } from "@/lib/prisma";
-import { actionUser, SafeError } from "@/lib/safe-action-client";
+import { actionClient, actionUser, SafeError } from "@/lib/safe-action-client";
+import { UserPlan } from "@prisma/client";
 import { z } from "zod";
 import { ReviewFormSchema } from "./review.schema";
 
-export const addReviewSafeAction = actionUser
-  .schema(ReviewFormSchema)
-  .action(async ({ parsedInput: input, ctx }) => {
+export const addReviewSafeAction = actionClient
+  .schema(ReviewFormSchema.extend({ userId: z.string() }))
+  .action(async ({ parsedInput: input }) => {
     if (input.name === "méchant") {
       throw new SafeError("Invalid name");
+    }
+
+    const userPlan = await prisma.user.findUnique({
+      where: { id: input.userId },
+      select: { plan: true },
+    });
+
+    if (!userPlan) {
+      throw new SafeError("No user find");
+    }
+
+    const limit = LIMITATIONS[userPlan.plan as UserPlan];
+
+    const currentReviewCount = await prisma.review.count({
+      where: { userId: input.userId },
+    });
+
+    if (currentReviewCount >= limit.reviewLimit) {
+      throw new SafeError(
+        "Impossible to add more review. Ask owner to increase limitation"
+      );
     }
 
     const newReview = await prisma.review.create({
@@ -17,7 +40,7 @@ export const addReviewSafeAction = actionUser
         review: input.review,
         name: input.name,
         star: 5,
-        userId: ctx.user.id,
+        userId: input.userId,
       },
     });
 

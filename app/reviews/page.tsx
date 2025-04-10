@@ -1,22 +1,31 @@
 import { PageLayout } from "@/components/layout";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Alert, AlertTitle } from "@/components/ui/alert";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { getUser } from "@/lib/auth-server";
 import { prisma } from "@/lib/prisma";
 import { UpdateTitleForm } from "@app/(formations-layout)/courses/edit-title";
 import { SelectStar } from "@app/(formations-layout)/courses/select-star";
-import { X } from "lucide-react";
+import { Banknote, X } from "lucide-react";
 import { revalidatePath } from "next/cache";
+import Link from "next/link";
+import { unauthorized } from "next/navigation";
 import { ReviewForm } from "./review-form";
 import { deleteReviewAction, updateReviewAction } from "./review.action";
 
 export default async function Home() {
   const user = await getUser();
+
+  if (!user) unauthorized();
+
   const reviews = await prisma.review.findMany({
     where: {
       userId: user?.id,
     },
   });
+
+  const isOffLimit = reviews.length >= user.limit.reviewLimit;
 
   const changeStar = async (reviewId: string, star: number) => {
     "use server";
@@ -46,6 +55,32 @@ export default async function Home() {
 
   return (
     <PageLayout>
+      <Card>
+        <CardHeader>
+          <CardTitle>Share review link</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {isOffLimit ? (
+            <Alert>
+              <Banknote />
+              <div className="flex flex-col gap-4">
+                <AlertTitle>
+                  You're review limit of {user.limit.reviewLimit} has been
+                  reached
+                </AlertTitle>
+                <Link
+                  className={buttonVariants({ size: "sm" })}
+                  href="/auth/plan"
+                >
+                  Upgrade
+                </Link>
+              </div>
+            </Alert>
+          ) : (
+            <Input value={`http://localhost:3000/post-review/${user?.id}`} />
+          )}
+        </CardContent>
+      </Card>
       <div className="flex flex-col gap-4">
         {reviews.map((review) => (
           <Card key={review.id} className="relative">
@@ -85,7 +120,7 @@ export default async function Home() {
         ))}
       </div>
       <Card className="px-4">
-        <ReviewForm />
+        <ReviewForm userId={user?.id ?? ""} />
       </Card>
     </PageLayout>
   );

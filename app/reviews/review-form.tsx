@@ -4,8 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
-import { ComponentProps } from "react";
-import { useFormStatus } from "react-dom";
 import { z } from "zod";
 import { addReviewSafeAction } from "./review.action";
 
@@ -20,9 +18,10 @@ import {
 } from "@/components/ui/form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { ReviewFormSchema } from "./review.schema";
 
-export const ReviewForm = () => {
+export const ReviewForm = (props: { userId: string; redirectUrl?: string }) => {
   // 1. Define your form.
   const form = useForm<z.infer<typeof ReviewFormSchema>>({
     resolver: zodResolver(ReviewFormSchema),
@@ -31,14 +30,25 @@ export const ReviewForm = () => {
       review: "",
     },
   });
-  const { executeAsync } = useAction(addReviewSafeAction);
+
+  const { execute, isPending } = useAction(addReviewSafeAction, {
+    onError: (error) => {
+      console.log({ error });
+      toast.error(error.error.serverError ?? "Impossible to add more review !");
+    },
+    onSuccess: () => {
+      router.refresh();
+      form.reset();
+      if (props.redirectUrl) {
+        router.push(props.redirectUrl);
+      }
+    },
+  });
 
   const router = useRouter();
 
   async function onSubmit(values: z.infer<typeof ReviewFormSchema>) {
-    await executeAsync(values);
-    router.refresh();
-    form.reset();
+    execute({ ...values, userId: props.userId });
   }
 
   return (
@@ -75,14 +85,10 @@ export const ReviewForm = () => {
             </FormItem>
           )}
         />
-        <SubmitButton type="submit">Submit</SubmitButton>
+        <Button disabled={isPending} type="submit">
+          Submit
+        </Button>
       </form>
     </Form>
   );
-};
-
-const SubmitButton = (props: ComponentProps<typeof Button>) => {
-  const { pending } = useFormStatus();
-
-  return <Button {...props} disabled={props.disabled || pending} />;
 };

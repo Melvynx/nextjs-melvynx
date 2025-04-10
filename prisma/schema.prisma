@@ -28,19 +28,26 @@ model Review {
 
 // L'utilisateur
 model User {
-  id            String    @id
-  name          String
-  email         String
-  emailVerified Boolean
-  image         String?
-  createdAt     DateTime
-  updatedAt     DateTime
-  sessions      Session[]
-  accounts      Account[]
-  reviews       Review[]
+  id               String    @id
+  name             String
+  email            String
+  emailVerified    Boolean
+  image            String?
+  createdAt        DateTime
+  updatedAt        DateTime
+  sessions         Session[]
+  accounts         Account[]
+  reviews          Review[]
+  plan             UserPlan  @default(FREE)
+  stripeCustomerId String?
 
   @@unique([email])
   @@map("user")
+}
+
+enum UserPlan {
+  FREE
+  PRO
 }
 
 // Retrouver l'utilisateur quand il refresh la page
