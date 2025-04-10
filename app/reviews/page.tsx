@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { getUser } from "@/lib/auth-server";
 import { prisma } from "@/lib/prisma";
+import { getServerUrl } from "@/lib/server-url";
 import { UpdateTitleForm } from "@app/reviews/edit-title";
 import { SelectStar } from "@app/reviews/select-star";
 import { Banknote, X } from "lucide-react";
@@ -77,7 +78,7 @@ export default async function Home() {
               </div>
             </Alert>
           ) : (
-            <Input value={`http://localhost:3000/post-review/${user?.id}`} />
+            <Input value={`${getServerUrl()}/post-review/${user?.id}`} />
           )}
         </CardContent>
       </Card>
