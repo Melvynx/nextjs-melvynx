@@ -16,7 +16,7 @@ import {
 } from "./ui/dropdown-menu";
 import { Skeleton } from "./ui/skeleton";
 
-export const Header = () => {
+export const Header = async () => {
   return (
     <header className="flex items-center gap-4 px-4 py-2 border-b max-w-md mx-auto border-x">
       <Link href="/">App</Link>
