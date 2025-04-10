@@ -2,7 +2,7 @@
 
 import { cn } from "@/lib/utils";
 import { Star } from "lucide-react";
-import { useState } from "react";
+import { useState, useTransition } from "react";
 
 /**
  * Client Component
@@ -12,12 +12,15 @@ import { useState } from "react";
  */
 export const SelectStar = (props: {
   star: number;
-  setNewStar: (star: number) => void;
+  onStarChange?: (star: number) => Promise<void>;
 }) => {
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);
+  const [isPending, startTransition] = useTransition();
   return (
     <div
-      className="flex items-center gap-1"
+      className={cn("flex items-center gap-1", {
+        "animate-pulse": isPending,
+      })}
       onMouseLeave={() => {
         setHoverIndex(null);
       }}
@@ -32,7 +35,9 @@ export const SelectStar = (props: {
             }}
             key={i}
             onClick={() => {
-              props.setNewStar(i + 1);
+              startTransition(() => {
+                props.onStarChange?.(i + 1);
+              });
             }}
           >
             <Star
