@@ -1,28 +1,31 @@
+import { PageLayout } from "@/components/layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { PageLayout } from "@/layout";
+import { getUser } from "@/lib/auth-server";
 import { prisma } from "@/lib/prisma";
 import { UpdateTitleForm } from "@app/(formations-layout)/courses/edit-title";
 import { SelectStar } from "@app/(formations-layout)/courses/select-star";
 import { X } from "lucide-react";
 import { revalidatePath } from "next/cache";
 import { ReviewForm } from "./review-form";
+import { deleteReviewAction, updateReviewAction } from "./review.action";
 
 export default async function Home() {
-  const reviews = await prisma.review.findMany();
+  const user = await getUser();
+  const reviews = await prisma.review.findMany({
+    where: {
+      userId: user?.id,
+    },
+  });
 
   const changeStar = async (reviewId: string, star: number) => {
     "use server";
 
     await new Promise((r) => setTimeout(r, 1000));
 
-    await prisma.review.update({
-      where: {
-        id: reviewId,
-      },
-      data: {
-        star: star,
-      },
+    await updateReviewAction({
+      reviewId: reviewId,
+      star,
     });
 
     revalidatePath("/");
@@ -33,13 +36,9 @@ export default async function Home() {
 
     await new Promise((r) => setTimeout(r, 1000));
 
-    await prisma.review.update({
-      where: {
-        id: reviewId,
-      },
-      data: {
-        name,
-      },
+    await updateReviewAction({
+      reviewId: reviewId,
+      name,
     });
 
     revalidatePath("/");
@@ -56,11 +55,7 @@ export default async function Home() {
                   formAction={async () => {
                     "use server";
 
-                    await prisma.review.delete({
-                      where: {
-                        id: review.id,
-                      },
-                    });
+                    await deleteReviewAction({ reviewId: review.id });
 
                     revalidatePath("/");
                   }}

@@ -1,5 +1,5 @@
+import { PageLayout } from "@/components/layout";
 import { ModeToggle } from "@/components/theme-toggle";
-import { PageLayout } from "@/layout";
 import Link from "next/link";
 
 export default async function Home() {

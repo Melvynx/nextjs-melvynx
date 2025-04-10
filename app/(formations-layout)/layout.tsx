@@ -1,4 +1,4 @@
-import { PageLayout } from "@/layout";
+import { PageLayout } from "@/components/layout";
 import Link from "next/link";
 import { PropsWithChildren } from "react";
 
