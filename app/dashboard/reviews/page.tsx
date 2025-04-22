@@ -1,28 +1,24 @@
-import { PageLayout } from "@/components/layout";
 import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { getUser } from "@/lib/auth-server";
+import { getRequiredUser } from "@/lib/auth-server";
 import { prisma } from "@/lib/prisma";
 import { getServerUrl } from "@/lib/server-url";
-import { UpdateTitleForm } from "@app/reviews/edit-title";
-import { SelectStar } from "@app/reviews/select-star";
+import { UpdateTitleForm } from "@app/dashboard/reviews/edit-title";
+import { SelectStar } from "@app/dashboard/reviews/select-star";
 import { Banknote, X } from "lucide-react";
 import { revalidatePath } from "next/cache";
 import Link from "next/link";
-import { unauthorized } from "next/navigation";
 import { ReviewForm } from "./review-form";
 import { deleteReviewAction, updateReviewAction } from "./review.action";
 
 export default async function Home() {
-  const user = await getUser();
-
-  if (!user) unauthorized();
+  const user = await getRequiredUser();
 
   const reviews = await prisma.review.findMany({
     where: {
-      userId: user?.id,
+      userId: user.id,
     },
   });
 
@@ -55,7 +51,7 @@ export default async function Home() {
   };
 
   return (
-    <PageLayout>
+    <div>
       <Card>
         <CardHeader>
           <CardTitle>Share review link</CardTitle>
@@ -123,6 +119,6 @@ export default async function Home() {
       <Card className="px-4">
         <ReviewForm userId={user?.id ?? ""} />
       </Card>
-    </PageLayout>
+    </div>
   );
 }

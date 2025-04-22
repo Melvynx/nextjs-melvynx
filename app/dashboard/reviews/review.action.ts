@@ -1,6 +1,7 @@
 "use server";
 
 import { LIMITATIONS } from "@/lib/auth-plan";
+import { getUser } from "@/lib/auth-server";
 import { prisma } from "@/lib/prisma";
 import { actionClient, actionUser, SafeError } from "@/lib/safe-action-client";
 import { UserPlan } from "@prisma/client";
@@ -47,21 +48,30 @@ export const addReviewSafeAction = actionClient
     return newReview;
   });
 
-export const updateReviewAction = actionUser
+export const updateReviewAction = actionClient
   .schema(
     z.object({
       star: z.number().optional(),
       name: z.string().optional(),
       reviewId: z.string(),
+      // ⚠️ Ne jamais passé le userId en paramètre
+      // → Toujours vérifier avec les cookies !
     })
   )
-  .action(async ({ parsedInput: input, ctx }) => {
-    console.log({ input, ctx });
+  .action(async ({ parsedInput: input }) => {
+    // 1. Toujours récupérer l'utilisateur
+    const user = await getUser();
 
+    // 2. Toujours vérifier que l'utilisateur est valide
+    if (!user) {
+      throw new SafeError("Invalid user");
+    }
+
+    // 3. Toujours filtrer les données en fonction de l'utilisateur
     await prisma.review.update({
       where: {
         id: input.reviewId,
-        userId: ctx.user.id,
+        userId: user.id,
       },
       data: {
         star: input.star,

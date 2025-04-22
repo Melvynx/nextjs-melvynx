@@ -2,7 +2,7 @@ import { PageLayout } from "@/components/layout";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { prisma } from "@/lib/prisma";
-import { ReviewForm } from "@app/reviews/review-form";
+import { ReviewForm } from "@app/dashboard/reviews/review-form";
 import { notFound } from "next/navigation";
 
 export default async function RoutePage(props: {
